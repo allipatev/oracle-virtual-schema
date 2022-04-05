@@ -58,6 +58,7 @@ class OracleSqlDialectIT {
 
     private static final String TABLE_ORACLE_ALL_DATA_TYPES = "TABLE_ORACLE_ALL_DATA_TYPES";
     private static final String TABLE_ORACLE_NUMBER_HANDLING = "TABLE_ORACLE_NUMBER_HANDLING";
+    private static final String TABLE_ORACLE_NTYPE_HANDLING = "TABLE_ORACLE_NTYPE_HANDLING";
     private static final String TABLE_ORACLE_TIMESTAMPS = "TABLE_ORACLE_TIMESTAMPS";
 
     @Container
@@ -151,6 +152,7 @@ class OracleSqlDialectIT {
         grantAdditionalRights(statementOracle);
         createOracleTableAllDataTypes(statementOracle);
         createOracleTableNumberHandling(statementOracle);
+        createOracleTableNTypeHandling(statementOracle);
         createOracleTableTimestamps(statementOracle);
         createTestTablesForJoinTests(oracleContainer.createConnectionDBA(""), SCHEMA_ORACLE);
     }
@@ -246,7 +248,23 @@ class OracleSqlDialectIT {
                 + "1234567890123456789012345678901234.56 " //
                 + ")");
     }
-
+    private static void createOracleTableNTypeHandling(final Statement statementOracle) throws SQLException {
+        final String qualifiedTableName = SCHEMA_ORACLE + "." + TABLE_ORACLE_NTYPE_HANDLING;
+        statementOracle.execute("CREATE TABLE " + qualifiedTableName + " (" //
+                + "a REAL,	" //
+                + "b FLOAT, " //
+                + "c DOUBLE PRECISION, " //
+                + "d BINARY_FLOAT, " //
+                + "e BINARY_DOUBLE " //
+                + ")");
+        statementOracle.execute("INSERT INTO " + qualifiedTableName + " VALUES (" //
+                + "34.56, " //
+                + "34.56, " //
+                + "34.56, " //
+                + "34.56, " //
+                + "34.56 " //
+                + ")");
+    }
     private static void createOracleTableTimestamps(final Statement statementOracle) throws SQLException {
         final String qualifiedTableName = SCHEMA_ORACLE + "." + TABLE_ORACLE_TIMESTAMPS;
         statementOracle.execute("CREATE TABLE " + qualifiedTableName + " (" //
@@ -360,6 +378,7 @@ class OracleSqlDialectIT {
             assertThat(statementExasol.executeQuery("SELECT * FROM " + qualifiedTableNameActual), //
                     matchesResultSet(expected));
         }
+        //TABLE_ORACLE_NTYPE_HANDLING
 
         @Test
         void testSelectAllColsNumberFromOra() throws SQLException {
@@ -371,7 +390,15 @@ class OracleSqlDialectIT {
             assertThat(statementExasol.executeQuery("SELECT * FROM " + qualifiedTableNameActual), //
                     matchesResultSet(expected));
         }
-
+        @Test
+        void testSelectAllColsNTypesFromOra() throws SQLException {
+            final String qualifiedTableNameActual = VIRTUAL_SCHEMA_ORACLE_NUMBER_TO_DECIMAL + "."
+                    + TABLE_ORACLE_NTYPE_HANDLING;
+            final ResultSet expected = getExpectedResultSet("(A DOUBLE, B DOUBLE , C DOUBLE , D DOUBLE, E DOUBLE)",
+                    "('34.56', '34.56', '34.56', '34.56', '34.56')");
+            assertThat(statementExasol.executeQuery("SELECT * FROM " + qualifiedTableNameActual), //
+                    matchesResultSet(expected));
+        }
         @ParameterizedTest
         @ValueSource(strings = {VIRTUAL_SCHEMA_JDBC_NUMBER_TO_DECIMAL, VIRTUAL_SCHEMA_ORACLE_NUMBER_TO_DECIMAL})
         void testNumberDataTypes(final String virtualSchemaName) {

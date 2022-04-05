@@ -34,7 +34,8 @@ public class OracleColumnMetadataReader extends BaseColumnMetadataReader {
             final IdentifierConverter identifierConverter) {
         super(connection, properties, identifierConverter);
     }
-
+    //https://docs.exasol.com/db/latest/migration_guides/oracle/execution/datatypemapping.htm
+    //https://community.exasol.com/t5/discussion-forum/oci-ora-import-different-data-types/td-p/8004
     @Override
     public DataType mapJdbcType(final JDBCTypeDescription jdbcTypeDescription) {
         switch (jdbcTypeDescription.getJdbcType()) {
@@ -46,9 +47,11 @@ public class OracleColumnMetadataReader extends BaseColumnMetadataReader {
             return DataType.createTimestamp(false);
         case INTERVAL_YEAR_TO_MONTH:
         case INTERVAL_DAY_TO_SECOND:
+            return DataType.createMaximumSizeVarChar(DataType.ExaCharset.UTF8);
         case ORACLE_BINARY_FLOAT:
         case ORACLE_BINARY_DOUBLE:
-            return DataType.createMaximumSizeVarChar(DataType.ExaCharset.UTF8);
+            //return DataType.createMaximumSizeVarChar(DataType.ExaCharset.UTF8);
+            return DataType.createDouble();
         default:
             return super.mapJdbcType(jdbcTypeDescription);
         }
